@@ -1,0 +1,13 @@
+{
+  "name": "oscar",
+  "owner": {
+    "name": "Tiberiu Tofan"
+  },
+  "plugins": [
+    {
+      "name": "oscar",
+      "source": "./",
+      "description": "Inject rudeness into prompts. Replication harness for Dobariya & Kumar (2025), arXiv:2510.04950."
+    }
+  ]
+}

@@ -35,12 +35,17 @@ an input transformation, not a persona.
 
 ```bash
 claude plugin marketplace add tibtof/oscar
+claude plugin install oscar@oscar
 ```
 
-**Any agent (via the universal skills registry):**
+**Any agent (via [vercel-labs/skills](https://github.com/vercel-labs/skills)):**
 
 ```bash
-npx skills add tibtof/oscar
+npx skills add tibtof/oscar --skill oscar
+# list both skills in the repo
+npx skills add tibtof/oscar --list
+# install the replication harness too
+npx skills add tibtof/oscar --skill oscar-bench
 ```
 
 ## Usage
