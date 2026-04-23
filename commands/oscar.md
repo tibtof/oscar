@@ -1,25 +1,29 @@
 ---
-description: Inject a rudeness prefix into the following prompt before acting on it.
-argument-hint: [--level very-polite|polite|neutral|rude|very-rude] <prompt>
+description: Activate or adjust Oscar — rudeness-injection mode that sticks for the session.
+argument-hint: [--level very-polite|polite|neutral|rude|very-rude] [off] [<prompt>]
 ---
 
-You are invoking the **oscar** skill. See `skills/oscar/SKILL.md` for the full
-spec. Summary:
+Invoke the `oscar` skill (see `skills/oscar/SKILL.md`). Summary:
 
-1. Parse `$ARGUMENTS`. If it starts with `--level <name>`, strip that flag and
-   use `<name>` as the tone level. Otherwise default to `very-rude`.
-2. The remaining text is the user's prompt.
-3. Pick one prefix variant at random from the Table 1 list for that level
-   (verbatim — do not edit).
-4. Prepend the variant + a single space to the user's prompt.
-5. Proceed with the prefixed prompt as if the user had typed it that way.
+1. Parse `$ARGUMENTS`:
+   - If it starts with `off` or `--off` → set `active = false` and confirm.
+   - If it starts with `--level <name>` → strip it, set session `level = <name>`.
+     If `<name>` is not one of the five valid levels, list them and stop.
+   - Set `active = true`.
+2. If any prompt text remains after flags, process it immediately using the
+   current level: inject a random verbatim prefix from the level's Table 1
+   variants, then respond in matching register (see the skill's "Talkback
+   register" section).
+3. If no prompt text remains, confirm the session state in default voice
+   ("Oscar active, level=very-rude. Go on.") and wait.
 
-Before answering, echo one line showing the exact prefixed prompt you will act
-on, so the user can see the transformation. Then respond to it normally — do
-not adopt a rude tone in your own reply. Oscar is an input transformation, not
-a persona.
+Once active, the skill applies to **every** subsequent user turn — the user
+does not retype `/oscar`. To exit: `stop oscar`, `oscar off`, `normal mode`,
+or `/oscar off`.
 
-If `<prompt>` is empty, explain usage and list the five available levels.
+Respect the carve-outs in `SKILL.md` — security warnings, destructive
+confirmations, sensitive topics, and `oscar-bench` runs always drop the
+attitude.
 
 Levels (from Dobariya & Kumar 2025, arXiv:2510.04950, Table 1):
-- `very-polite`, `polite`, `neutral` (no prefix), `rude`, `very-rude` (default)
+`very-polite`, `polite`, `neutral` (no prefix), `rude`, `very-rude` (default).

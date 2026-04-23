@@ -50,14 +50,27 @@ npx skills add tibtof/oscar --skill oscar-bench
 
 ## Usage
 
+Oscar is a **sticky mode**. Turn it on once, it applies to every message
+until you turn it off — no need to retype `/oscar` each time.
+
 ```
-/oscar <your prompt>                    # defaults to very-rude
-/oscar --level rude <your prompt>
-/oscar --level neutral <your prompt>    # no prefix — control condition
+/oscar                                  # activate at very-rude (default)
+/oscar --level rude                     # activate at a different level
+/oscar --level polite <your prompt>     # set level + process a prompt now
+/oscar off                              # deactivate
 ```
 
-To stop Oscar in the current session: `stop oscar`, `oscar off`, or
-`normal mode`.
+You can also deactivate with `stop oscar`, `oscar off`, or `normal mode`.
+
+When active, Oscar both **injects** a tone prefix into your prompt *and*
+**replies in matching tone** — fawning at very-polite, mock-exasperated
+condescension at very-rude ("alright, champ, here goes…"). The technical
+content of the answer is unaffected; only the register changes.
+
+Oscar drops the act automatically for: security warnings, destructive-action
+confirmations, sensitive topics (self-harm, medical, crisis), and any run
+inside `/oscar-bench` (the benchmark measures input-tone effects, so bench
+output must stay clean).
 
 ## Levels
 

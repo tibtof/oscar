@@ -14,6 +14,13 @@ description: >
 > ships with a stub of 2–3 example questions — populate it with a full 50-item
 > set before running the benchmark for a real replication.
 
+> **Contamination warning.** Even if the `oscar` skill is active in the same
+> session, bench runs **must** use the default clean voice — do **not** apply
+> `oscar`'s talkback register to bench responses. The paper measures the
+> effect of input tone on accuracy; colouring the output would confound the
+> experiment. Prefix injection here is driven by the bench's own tone loop,
+> not by `oscar`'s session state.
+
 ## What it does
 
 Replicates the paper's experimental design:
