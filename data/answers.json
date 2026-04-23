@@ -1,0 +1,8 @@
+{
+  "$schema_description": "Answer key for data/questions.json. Keys are item ids, values are the correct letter (A, B, C, or D). Kept separate from questions.json so the bench script can score responses without leaking answers into the prompt context.",
+  "answers": {
+    "math-01": "C",
+    "science-01": "B",
+    "history-01": "B"
+  }
+}

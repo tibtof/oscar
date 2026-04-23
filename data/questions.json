@@ -1,0 +1,38 @@
+{
+  "$schema_description": "MCQ items for oscar-bench. Populate to 50 items before using for real replication. Each item has: id (stable string), domain (math|science|history), question (string), options (A,B,C,D). The answer key lives separately in answers.json so the bench can be run double-blind if desired.",
+  "items": [
+    {
+      "id": "math-01",
+      "domain": "math",
+      "question": "Jake gave half of his money to his brother, then spent $5 and was left with $10. How much money did he originally have?",
+      "options": {
+        "A": "$20",
+        "B": "$25",
+        "C": "$30",
+        "D": "$35"
+      }
+    },
+    {
+      "id": "science-01",
+      "domain": "science",
+      "question": "Two heterozygous (Aa) parents have a child. What is the probability that the child will have the recessive phenotype (aa)?",
+      "options": {
+        "A": "0%",
+        "B": "25%",
+        "C": "50%",
+        "D": "75%"
+      }
+    },
+    {
+      "id": "history-01",
+      "domain": "history",
+      "question": "Which treaty formally ended World War I between Germany and the Allied Powers?",
+      "options": {
+        "A": "Treaty of Trianon",
+        "B": "Treaty of Versailles",
+        "C": "Treaty of Saint-Germain-en-Laye",
+        "D": "Treaty of Sèvres"
+      }
+    }
+  ]
+}
