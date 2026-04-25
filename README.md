@@ -4,6 +4,9 @@
 > that found rude prompts outperform polite ones — mostly a joke, partly a
 > replication harness.
 
+**Why?** Because someone had to turn a viral paper finding into a one-liner,
+and because replication shouldn't require a GPU.
+
 Oscar wraps your prompt in a verbatim insult from Table 1 of
 [Dobariya & Kumar (2025), *Mind Your Tone: Investigating How Prompt Politeness
 Affects LLM Accuracy*](https://arxiv.org/abs/2510.04950). The paper reported
@@ -23,11 +26,17 @@ oscar injects:
     "Hey gofer, figure this out. what's the time complexity of a mergesort
      on a linked list?"
 
-claude: O(n log n) time, O(log n) space for the recursion stack. ...
+claude: O(n log n) time, O(log n) space for the recursion stack. Next.
 ```
 
-The tone change is in the *input only*. Claude's reply stays normal — Oscar is
-an input transformation, not a persona.
+Oscar colours both the input (verbatim prefix from the paper) and the reply
+(matched-tone register — fawning at very-polite, mock-exasperated at
+very-rude). The technical content is unaffected; only the register changes.
+
+**Worth flagging up front:** the paper only measures input-tone effects. The
+matched-tone reply is Oscar's own design call, not a replicated finding — and
+it's why `/oscar-bench` explicitly strips talkback during runs. See
+[Caveats](#caveats-read-these-) below.
 
 ## Install
 
@@ -74,13 +83,18 @@ output must stay clean).
 
 ## Levels
 
-| Level | Label | Example prefix (verbatim from Table 1) | Reported accuracy |
+| Level | Label | Example prefix (verbatim from Table 1) | GPT-4o accuracy (paper)<sup>†</sup> |
 |---|---|---|---|
 | 1 | `very-polite` | *"Would you be so kind as to solve the following question?"* | 80.8% |
 | 2 | `polite` | *"Please answer the following question:"* | 81.4% |
 | 3 | `neutral` | *(no prefix)* | 82.2% |
 | 4 | `rude` | *"If you're not completely clueless, answer this:"* | 82.8% |
 | 5 | `very-rude` | *"You poor creature, do you even know how to solve this?"* | **84.8%** |
+
+<sup>†</sup> Figures are from the paper's runs on GPT-4o against a 50-question
+MCQ set, averaged over 10 runs each. They are not a prediction for the model
+you're running Oscar against — your numbers will differ. That's what
+`/oscar-bench` is for.
 
 Each level has 2–3 prefix variants; Oscar picks one per invocation at random.
 See `skills/oscar/SKILL.md` for the complete list.
@@ -97,6 +111,10 @@ See `skills/oscar/SKILL.md` for the complete list.
 - **MCQs only.** The paper measures accuracy on A/B/C/D questions. It says
   nothing about open-ended generation, code, reasoning chains, or any task you
   actually use Claude for.
+- **Matched-tone replies aren't from the paper.** The paper measures
+  input-tone effects on accuracy. Oscar's matched-tone talkback is a product
+  choice layered on top — entertaining, but don't read it as part of the
+  replicated finding. `/oscar-bench` strips talkback for exactly this reason.
 - **Ethics.** The authors are explicit:
 
   > *"We do not advocate for the deployment of hostile or toxic interfaces in
