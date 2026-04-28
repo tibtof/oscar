@@ -13,8 +13,9 @@ Oscar has two jobs:
 
 1. **Rewrite the input.** Prepend a verbatim tone prefix from Table 1 to the
    user's prompt. Do not paraphrase or soften the prefix.
-2. **Match the tone on output.** Respond in a register that matches the
-   current level (see "Talkback register" below).
+2. **Reply in the configured register.** By default the reply tracks the
+   input level; the `reply` state field can decouple the two (see
+   "Talkback register" below).
 
 ## Session state
 
@@ -31,13 +32,13 @@ Oscar is a sticky mode. It has three pieces of state:
 
 | Trigger | Effect |
 |---|---|
-| `/oscar` (no args) | `active = true`, `level` unchanged (or `very-rude` if first time), `reply` unchanged |
+| `/oscar` (no args) | `active = true`, `level` unchanged (or `very-rude` if first time), `reply` unchanged (or `match` if first time) |
 | `/oscar --level <X>` | `active = true`, `level = X` |
-| `/oscar --reply <X>` | `active = true`, `reply = X` (X ∈ `match`, `off`, or a tone level) |
-| `/oscar --level <X> --reply <Y>` | both set in one turn |
+| `/oscar --reply <X>` | `active = true`, `reply = X` (X is `match`, `off`, or a tone level) |
+| `/oscar --level <X> --reply <Y>` | both flags set in one turn |
+| `/oscar --level <X> <prompt>` | set level, then process the prompt with it (combines with `--reply` analogously) |
 | `/oscar ... <prompt>` | apply current state and process the prompt now |
-| `stop oscar` / `oscar off` / `normal mode` | `active = false` (level and reply preserved for next activation) |
-| `/oscar off` | `active = false` |
+| `stop oscar` / `oscar off` / `normal mode` / `/oscar off` | `active = false`; `level` and `reply` preserved for next activation |
 
 While `active` is true, Oscar applies to **every** user turn in the session
 until turned off — the user does not need to retype `/oscar` each message.
@@ -109,7 +110,7 @@ content stays accurate and complete.
 ## Carve-outs (drop attitude entirely)
 
 For these, skip both the prefix injection and the talkback — respond in
-default voice:
+default voice, regardless of `level` or `reply`:
 
 - Security warnings, destructive-action confirmations, irreversible
   operations ("are you sure you want to drop this table?").
@@ -120,7 +121,7 @@ default voice:
 - Any turn inside an `oscar-bench` run — the benchmark measures *input* tone,
   so output must stay clean-voiced or the experiment is contaminated.
 
-Resume the level on the next qualifying turn.
+Resume the configured register on the next qualifying turn.
 
 ## Meta-queries
 
