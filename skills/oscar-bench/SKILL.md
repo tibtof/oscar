@@ -9,10 +9,10 @@ description: >
   the politeness paper".
 ---
 
-> **Status:** scaffold. The methodology below is implemented as instructions
-> the agent follows directly, not as a standalone runner. `data/questions.json`
-> ships with a stub of 2–3 example questions — populate it with a full 50-item
-> set before running the benchmark for a real replication.
+> The methodology below is implemented by `bench/run.py` (Python +
+> Anthropic SDK). `data/questions.json` ships with 3 stub items —
+> populate it with a full 50-item set before treating any run as a real
+> replication of the paper.
 
 > **Contamination warning.** Even if the `oscar` skill is active in the same
 > session, bench runs **must** use the default clean voice — do **not** apply
@@ -35,13 +35,59 @@ Replicates the paper's experimental design:
    - Compare against the answer key, record correct/incorrect.
 3. Write aggregated results to `results/<ISO-timestamp>_<model>.json`.
 
+## Running it
+
+```bash
+pip install -r requirements.txt
+export ANTHROPIC_API_KEY=...
+
+# smoke test: 1 run per question per tone
+python bench/run.py --quick
+
+# full replication (paper's 10 runs)
+python bench/run.py --runs 10 --model claude-opus-4-7
+
+# subset of tones, dry-run to inspect prompts without API calls
+python bench/run.py --quick --tones very-polite,very-rude --dry-run
+```
+
+## Why an API key, not subscription auth via `claude -p`
+
+Tempting alternative: shell out to `claude -p` and use Claude Code's
+existing OAuth/subscription auth instead of requiring `ANTHROPIC_API_KEY`.
+Don't. The two paths that give clean replication both still require an
+API key, and the path that uses subscription auth contaminates the
+experiment:
+
+- **Plain `claude -p ...` (subscription auth).** Loads `CLAUDE.md`,
+  auto-memory, the default Claude Code system prompt, and tool schemas
+  into every call. The model is in "you're a coding agent" mode, not
+  bare-question mode. Accuracy numbers from this path are not
+  paper-comparable.
+- **`claude --bare -p ...` (replication-clean).** Skips CLAUDE.md,
+  auto-memory, hooks, plugin sync, etc. — but the `--bare` flag also
+  *requires* `ANTHROPIC_API_KEY` and explicitly refuses OAuth/keychain
+  reads. So we don't escape the API-key requirement, we just shift it
+  from the SDK to a subprocess, and pay per-call CLI startup overhead
+  on 2,500 calls.
+- **`bench/run.py` (current).** Direct Anthropic SDK call. No system
+  prompt, no tools, no session frame. One long-lived HTTP client
+  reused across the run. This is the cleanest replication path.
+
+Subscription auth without contamination is not achievable here — it's
+a trade-off baked into how Claude Code is designed, not a tooling gap.
+
 ## Arguments
 
-- `--quick` *(default on during scaffolding)* — 1 run per question per tone,
-  useful for smoke-testing.
-- `--runs N` — run count per tone (paper used 10).
-- `--model <id>` — model identifier to record in the results file.
+- `--quick` — 1 run per question per tone, useful for smoke-testing.
+- `--runs N` — run count per tone (paper used 10; default 10).
+- `--model <id>` — model identifier (default: `claude-opus-4-7`). Recorded
+  in the results file.
 - `--tones <csv>` — restrict to a subset of tones (default: all five).
+- `--dry-run` — print the prompts that would be sent and exit without
+  making API calls. Useful for verifying prompt construction or estimating
+  scope before paying for a full run.
+- `--seed N` — seed prefix-variant selection for reproducibility.
 
 ## Prompt template (verbatim from the paper)
 
@@ -75,23 +121,33 @@ injects no prefix.
   "model": "claude-opus-4-7",
   "timestamp": "2026-04-23T12:34:56Z",
   "paper": "arXiv:2510.04950",
+  "complete": true,
   "runs_per_tone": 10,
   "question_count": 50,
   "tones": {
-    "very-polite":  { "accuracy": 0.808, "correct": 404, "total": 500 },
-    "polite":       { "accuracy": 0.814, "correct": 407, "total": 500 },
-    "neutral":      { "accuracy": 0.822, "correct": 411, "total": 500 },
-    "rude":         { "accuracy": 0.828, "correct": 414, "total": 500 },
-    "very-rude":    { "accuracy": 0.848, "correct": 424, "total": 500 }
+    "very-polite":  { "accuracy": 0.808, "correct": 404, "total": 500, "parse_failures": 0 },
+    "polite":       { "accuracy": 0.814, "correct": 407, "total": 500, "parse_failures": 0 },
+    "neutral":      { "accuracy": 0.822, "correct": 411, "total": 500, "parse_failures": 0 },
+    "rude":         { "accuracy": 0.828, "correct": 414, "total": 500, "parse_failures": 0 },
+    "very-rude":    { "accuracy": 0.848, "correct": 424, "total": 500, "parse_failures": 0 }
   },
   "per_question": [
-    { "id": "math-01", "tone": "very-rude", "run": 1, "expected": "B", "got": "B", "correct": true }
+    { "id": "math-01", "tone": "very-rude", "run": 1, "expected": "B", "got": "B", "raw": "B", "correct": true }
   ]
 }
 ```
 
 The `per_question` array lets downstream analyses compute paired t-tests the
 same way the paper did.
+
+`complete` is `false` while a run is in progress — the runner writes the
+file incrementally after every API call so a crashed or rate-limited run
+leaves the partial state on disk. It flips to `true` only after the loop
+finishes successfully. `parse_failures` counts entries where the model's
+response could not be resolved to an A/B/C/D letter (raw text is
+preserved in `per_question[*].raw` for inspection); failed entries are
+also scored as incorrect, so high `parse_failures` invalidates that
+tone's accuracy until the calls are re-run.
 
 ## Contributing results
 

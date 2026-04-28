@@ -144,10 +144,21 @@ See `skills/oscar/SKILL.md` for the complete list.
 
 ## Replicating the paper
 
-Oscar ships with `oscar-bench`, a scaffold for running the paper's methodology
-against any model. See `skills/oscar-bench/SKILL.md`. The question dataset is
-a stub — contributions welcome via PR to `data/questions.json`. Results go in
-`results/<timestamp>_<model>.json`; see `results/README.md` for the schema.
+Oscar ships with `oscar-bench`, a runner that drives the paper's methodology
+against any Claude model via the Anthropic SDK:
+
+```bash
+pip install -r requirements.txt
+export ANTHROPIC_API_KEY=...
+python bench/run.py --quick                           # smoke test
+python bench/run.py --runs 10 --model claude-opus-4-7  # full replication
+python bench/run.py --quick --dry-run                  # offline prompt check
+```
+
+The question dataset is currently a 3-item stub — contributions welcome via
+PR to `data/questions.json` (see issue #6). Results go in
+`results/<timestamp>_<model>.json`; schema in `skills/oscar-bench/SKILL.md`,
+contribution rules in `results/README.md`.
 
 ## License
 
