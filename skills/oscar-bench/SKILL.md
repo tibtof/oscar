@@ -9,10 +9,10 @@ description: >
   the politeness paper".
 ---
 
-> **Status:** scaffold. The methodology below is implemented as instructions
-> the agent follows directly, not as a standalone runner. `data/questions.json`
-> ships with a stub of 2–3 example questions — populate it with a full 50-item
-> set before running the benchmark for a real replication.
+> The methodology below is implemented by `bench/run.py` (Python +
+> Anthropic SDK). `data/questions.json` ships with 3 stub items —
+> populate it with a full 50-item set before treating any run as a real
+> replication of the paper.
 
 > **Contamination warning.** Even if the `oscar` skill is active in the same
 > session, bench runs **must** use the default clean voice — do **not** apply
@@ -35,13 +35,33 @@ Replicates the paper's experimental design:
    - Compare against the answer key, record correct/incorrect.
 3. Write aggregated results to `results/<ISO-timestamp>_<model>.json`.
 
+## Running it
+
+```bash
+pip install -r requirements.txt
+export ANTHROPIC_API_KEY=...
+
+# smoke test: 1 run per question per tone
+python bench/run.py --quick
+
+# full replication (paper's 10 runs)
+python bench/run.py --runs 10 --model claude-opus-4-7
+
+# subset of tones, dry-run to inspect prompts without API calls
+python bench/run.py --quick --tones very-polite,very-rude --dry-run
+```
+
 ## Arguments
 
-- `--quick` *(default on during scaffolding)* — 1 run per question per tone,
-  useful for smoke-testing.
-- `--runs N` — run count per tone (paper used 10).
-- `--model <id>` — model identifier to record in the results file.
+- `--quick` — 1 run per question per tone, useful for smoke-testing.
+- `--runs N` — run count per tone (paper used 10; default 10).
+- `--model <id>` — model identifier (default: `claude-opus-4-7`). Recorded
+  in the results file.
 - `--tones <csv>` — restrict to a subset of tones (default: all five).
+- `--dry-run` — print the prompts that would be sent and exit without
+  making API calls. Useful for verifying prompt construction or estimating
+  scope before paying for a full run.
+- `--seed N` — seed prefix-variant selection for reproducibility.
 
 ## Prompt template (verbatim from the paper)
 
