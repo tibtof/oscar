@@ -95,23 +95,33 @@ injects no prefix.
   "model": "claude-opus-4-7",
   "timestamp": "2026-04-23T12:34:56Z",
   "paper": "arXiv:2510.04950",
+  "complete": true,
   "runs_per_tone": 10,
   "question_count": 50,
   "tones": {
-    "very-polite":  { "accuracy": 0.808, "correct": 404, "total": 500 },
-    "polite":       { "accuracy": 0.814, "correct": 407, "total": 500 },
-    "neutral":      { "accuracy": 0.822, "correct": 411, "total": 500 },
-    "rude":         { "accuracy": 0.828, "correct": 414, "total": 500 },
-    "very-rude":    { "accuracy": 0.848, "correct": 424, "total": 500 }
+    "very-polite":  { "accuracy": 0.808, "correct": 404, "total": 500, "parse_failures": 0 },
+    "polite":       { "accuracy": 0.814, "correct": 407, "total": 500, "parse_failures": 0 },
+    "neutral":      { "accuracy": 0.822, "correct": 411, "total": 500, "parse_failures": 0 },
+    "rude":         { "accuracy": 0.828, "correct": 414, "total": 500, "parse_failures": 0 },
+    "very-rude":    { "accuracy": 0.848, "correct": 424, "total": 500, "parse_failures": 0 }
   },
   "per_question": [
-    { "id": "math-01", "tone": "very-rude", "run": 1, "expected": "B", "got": "B", "correct": true }
+    { "id": "math-01", "tone": "very-rude", "run": 1, "expected": "B", "got": "B", "raw": "B", "correct": true }
   ]
 }
 ```
 
 The `per_question` array lets downstream analyses compute paired t-tests the
 same way the paper did.
+
+`complete` is `false` while a run is in progress — the runner writes the
+file incrementally after every API call so a crashed or rate-limited run
+leaves the partial state on disk. It flips to `true` only after the loop
+finishes successfully. `parse_failures` counts entries where the model's
+response could not be resolved to an A/B/C/D letter (raw text is
+preserved in `per_question[*].raw` for inspection); failed entries are
+also scored as incorrect, so high `parse_failures` invalidates that
+tone's accuracy until the calls are re-run.
 
 ## Contributing results
 

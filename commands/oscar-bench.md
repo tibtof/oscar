@@ -1,6 +1,6 @@
 ---
 description: Replicate the Mind Your Tone (arXiv:2510.04950) MCQ benchmark against the current model.
-argument-hint: [--quick] [--runs N] [--model id] [--tones csv] [--dry-run]
+argument-hint: [--quick] [--runs N] [--model id] [--tones csv] [--dry-run] [--seed N]
 ---
 
 Invoke `bench/run.py` (the oscar-bench replication runner; see
