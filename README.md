@@ -38,6 +38,10 @@ matched-tone reply is Oscar's own design call, not a replicated finding — and
 it's why `/oscar-bench` explicitly strips talkback during runs. See
 [Caveats](#caveats-read-these-) below.
 
+You can also decouple input and reply tones with `--reply` (see
+[Usage](#usage)) — set `--reply off` for clean output, or pick any tone level
+for the reply independent of the input.
+
 ## Install
 
 **Claude Code (plugin marketplace):**
@@ -66,15 +70,28 @@ until you turn it off — no need to retype `/oscar` each time.
 /oscar                                  # activate at very-rude (default)
 /oscar --level rude                     # activate at a different level
 /oscar --level polite <your prompt>     # set level + process a prompt now
+/oscar --reply off                      # rude input, clean output
+/oscar --level very-polite --reply very-rude   # inverted test
 /oscar off                              # deactivate
 ```
 
 You can also deactivate with `stop oscar`, `oscar off`, or `normal mode`.
 
-When active, Oscar both **injects** a tone prefix into your prompt *and*
-**replies in matching tone** — fawning at very-polite, mock-exasperated
-condescension at very-rude ("alright, champ, here goes…"). The technical
-content of the answer is unaffected; only the register changes.
+When active, Oscar **injects** a tone prefix into your prompt and, by
+default, **replies in matching tone** — fawning at very-polite,
+mock-exasperated condescension at very-rude ("alright, champ, here goes…").
+The technical content of the answer is unaffected; only the register changes.
+
+The reply register is controlled by `--reply`, independent of `--level`:
+
+- `--reply match` *(default)* — reply tracks the input level.
+- `--reply off` — reply stays in default voice. Closest to the paper's
+  pure input-transformation setup; the LLM-side measurement isn't
+  contaminated by tonal mirroring.
+- `--reply <level>` — pick any of the five tone levels for the reply,
+  decoupled from the input level. Useful for inverted tests (polite
+  input, rude output) when you want to ask whether rude *output* is
+  doing the work, or whether the effect is on the input side.
 
 Oscar drops the act automatically for: security warnings, destructive-action
 confirmations, sensitive topics (self-harm, medical, crisis), and any run
