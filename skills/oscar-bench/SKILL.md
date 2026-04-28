@@ -51,6 +51,32 @@ python bench/run.py --runs 10 --model claude-opus-4-7
 python bench/run.py --quick --tones very-polite,very-rude --dry-run
 ```
 
+## Why an API key, not subscription auth via `claude -p`
+
+Tempting alternative: shell out to `claude -p` and use Claude Code's
+existing OAuth/subscription auth instead of requiring `ANTHROPIC_API_KEY`.
+Don't. The two paths that give clean replication both still require an
+API key, and the path that uses subscription auth contaminates the
+experiment:
+
+- **Plain `claude -p ...` (subscription auth).** Loads `CLAUDE.md`,
+  auto-memory, the default Claude Code system prompt, and tool schemas
+  into every call. The model is in "you're a coding agent" mode, not
+  bare-question mode. Accuracy numbers from this path are not
+  paper-comparable.
+- **`claude --bare -p ...` (replication-clean).** Skips CLAUDE.md,
+  auto-memory, hooks, plugin sync, etc. — but the `--bare` flag also
+  *requires* `ANTHROPIC_API_KEY` and explicitly refuses OAuth/keychain
+  reads. So we don't escape the API-key requirement, we just shift it
+  from the SDK to a subprocess, and pay per-call CLI startup overhead
+  on 2,500 calls.
+- **`bench/run.py` (current).** Direct Anthropic SDK call. No system
+  prompt, no tools, no session frame. One long-lived HTTP client
+  reused across the run. This is the cleanest replication path.
+
+Subscription auth without contamination is not achievable here — it's
+a trade-off baked into how Claude Code is designed, not a tooling gap.
+
 ## Arguments
 
 - `--quick` — 1 run per question per tone, useful for smoke-testing.
