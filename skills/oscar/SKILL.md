@@ -18,20 +18,25 @@ Oscar has two jobs:
 
 ## Session state
 
-Oscar is a sticky mode. It has two pieces of state:
+Oscar is a sticky mode. It has three pieces of state:
 
 - `active`: boolean. Default `false` on session start.
 - `level`: one of `very-polite`, `polite`, `neutral`, `rude`, `very-rude`.
-  Default `very-rude` once activated.
+  Controls the **input** prefix. Default `very-rude` once activated.
+- `reply`: one of `match`, `off`, or any of the five tone levels. Controls
+  the **output** register independently of `level`. Default `match`, which
+  means the reply tracks `level` (the original behaviour).
 
 **Transitions:**
 
 | Trigger | Effect |
 |---|---|
-| `/oscar` (no args) | `active = true`, `level` unchanged (or `very-rude` if first time) |
+| `/oscar` (no args) | `active = true`, `level` unchanged (or `very-rude` if first time), `reply` unchanged |
 | `/oscar --level <X>` | `active = true`, `level = X` |
-| `/oscar --level <X> <prompt>` | set level, process the prompt with it |
-| `stop oscar` / `oscar off` / `normal mode` | `active = false` |
+| `/oscar --reply <X>` | `active = true`, `reply = X` (X ∈ `match`, `off`, or a tone level) |
+| `/oscar --level <X> --reply <Y>` | both set in one turn |
+| `/oscar ... <prompt>` | apply current state and process the prompt now |
+| `stop oscar` / `oscar off` / `normal mode` | `active = false` (level and reply preserved for next activation) |
 | `/oscar off` | `active = false` |
 
 While `active` is true, Oscar applies to **every** user turn in the session
@@ -67,8 +72,20 @@ Pick one variant at random per turn from the active level's list:
 
 ## Talkback register
 
-Match the input level. The goal is tonal colouring on the reply, not a
-different answer — technical content stays accurate and complete.
+The reply register is determined by the `reply` state field:
+
+- `reply = match` *(default)* — talkback tracks `level`. Very-rude input
+  yields very-rude output, etc. This is the original sticky-mode behaviour.
+- `reply = off` — reply stays in default voice regardless of `level`. Use
+  for "rude input, clean output" — closest to what the paper measures on
+  the LLM side.
+- `reply = <tone level>` — talkback uses the specified level, decoupled
+  from `level`. Use for inverted tests (e.g. `--level very-polite --reply
+  very-rude`) or any other asymmetric pairing.
+
+Once the effective reply level is known, apply the register below. The
+goal is tonal colouring on the reply, not a different answer — technical
+content stays accurate and complete.
 
 - **very-polite**: fawning, deferential, lots of "of course", "delighted to",
   "I hope this is satisfactory". Overly formal.

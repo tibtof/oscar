@@ -1,21 +1,26 @@
 ---
 description: Activate or adjust Oscar — rudeness-injection mode that sticks for the session.
-argument-hint: [--level very-polite|polite|neutral|rude|very-rude] [off] [<prompt>]
+argument-hint: [--level very-polite|polite|neutral|rude|very-rude] [--reply match|off|<level>] [off] [<prompt>]
 ---
 
 Invoke the `oscar` skill (see `skills/oscar/SKILL.md`). Summary:
 
-1. Parse `$ARGUMENTS`:
+1. Parse `$ARGUMENTS` (flags may appear in any order, both may appear together):
    - If it starts with `off` or `--off` → set `active = false` and confirm.
-   - If it starts with `--level <name>` → strip it, set session `level = <name>`.
-     If `<name>` is not one of the five valid levels, list them and stop.
+   - If `--level <name>` is present → strip it, set session `level = <name>`.
+     Valid: the five tone levels. Otherwise list them and stop.
+   - If `--reply <name>` is present → strip it, set session `reply = <name>`.
+     Valid: `match`, `off`, or any of the five tone levels. Otherwise list
+     them and stop.
    - Set `active = true`.
-2. If any prompt text remains after flags, process it immediately using the
-   current level: inject a random verbatim prefix from the level's Table 1
-   variants, then respond in matching register (see the skill's "Talkback
-   register" section).
+2. If any prompt text remains after flags, process it immediately:
+   - Inject a random verbatim prefix from the current `level`'s Table 1
+     variants.
+   - Resolve the effective reply register from `reply` (see the skill's
+     "Talkback register" section): `match` tracks `level`, `off` is default
+     voice, a named level uses that level's register.
 3. If no prompt text remains, confirm the session state in default voice
-   ("Oscar active, level=very-rude. Go on.") and wait.
+   (e.g. "Oscar active, level=very-rude, reply=match. Go on.") and wait.
 
 Once active, the skill applies to **every** subsequent user turn — the user
 does not retype `/oscar`. To exit: `stop oscar`, `oscar off`, `normal mode`,
